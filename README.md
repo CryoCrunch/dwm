@@ -1,3 +1,3 @@
-Cryo DWM fork
+Cryo's Fork of DWM
 
 more info incoming
