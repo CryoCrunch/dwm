@@ -30,8 +30,8 @@ typedef struct {
        const char *name;
        const void *cmd;
 } Sp;
-const char *spcmd1[] = {"st", "-n", "spterm", "-g",     "100x20", NULL };
-const char *spcmd2[] = {"st", "-n", "spcalc", "-g", "100x20", "-e", "R", NULL };
+const char *spcmd1[] = {"st", "-t", "spterm", "-g",     "100x20", NULL };
+const char *spcmd2[] = {"st", "-t", "spcalc", "-g", "100x20", "-e", "R", NULL };
 static Sp scratchpads[] = {
        /* name          cmd  */
        {"spterm",      spcmd1},
@@ -50,8 +50,8 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Brave-browser",  NULL,       NULL,       1 << 8,       0,           -1 },
-	{ NULL,           "spterm",     NULL,  SPTAG(0), 1, -1 },
-        { NULL, "spcalc", NULL, SPTAG(1), 1,  -1 },
+	{ NULL,           NULL,    "spterm",  SPTAG(0), 1, -1 },
+        { NULL, NULL, "spcalc", SPTAG(1), 1,  -1 },
 
 };
 
