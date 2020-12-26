@@ -8,8 +8,8 @@ static const unsigned int borderpx  = 3;        /* border pixel of windows */
 static const unsigned int snap      = 32;       /* snap pixel */
 static const int showbar            = 1;        /* 0 means no bar */
 static const int topbar             = 1;        /* 0 means bottom bar */
-static const char *fonts[]          = { "Font Awesome 5 Free Solid:size=15", "Font Awesome 5 Brands Regular:size=15","SauceCodePro Nerd Font Mono:size=15" };
-static const char dmenufont[]       = "Font Awesome 5 Free Solid:size=15";
+static const char *fonts[]          = { "Font Awesome 5 Free Solid:size=13", "Font Awesome 5 Brands Regular:size=13","SauceCodePro Nerd Font Mono:size=13" };
+static const char dmenufont[]       = "Font Awesome 5 Free Solid:size=13";
 /*Background inactive tab colors*/
 static const char col_gray1[]       = "#086903";
 /*Inactive window border color*/
@@ -32,16 +32,18 @@ typedef struct {
 } Sp;
 const char *spcmd1[] = {"st", "-t", "spterm", "-g",     "100x20", NULL };
 const char *spcmd2[] = {"st", "-t", "spcalc", "-g", "100x20", "-e", "R", NULL };
+const char *spcmd3[] = {"st", "-t", "spmp", "-g", "100x20", "-e", "ncmpcpp", NULL };
 static Sp scratchpads[] = {
        /* name          cmd  */
        {"spterm",      spcmd1},
        {"spcalc",    spcmd2},
+       {"spmp",    spcmd3},
 };
 
 
 
 /* tagging */
-static const char *tags[] = { "", "", "", "4", "5", "6", "7", "8", "" };
+static const char *tags[] = { "", "", "", "4", "5", "6", "7", "", "" };
 
 static const Rule rules[] = {
 	/* xprop(1):
@@ -50,8 +52,11 @@ static const Rule rules[] = {
 	 */
 	/* class      instance    title       tags mask     isfloating   monitor */
 	{ "Brave-browser",  NULL,       NULL,       1 << 8,       0,           -1 },
+	{ "XVkbd",  NULL,       NULL,       0,       1,           -1 },
+	{ "mpv",  NULL,       NULL,       0,       1,           -1 },
 	{ NULL,           NULL,    "spterm",  SPTAG(0), 1, -1 },
         { NULL, NULL, "spcalc", SPTAG(1), 1,  -1 },
+        { NULL, NULL, "spmp", SPTAG(2), 1,  -1 },
 
 };
 
@@ -77,6 +82,7 @@ static const Layout layouts[] = {
 
 /* helper for spawning shell commands in the pre dwm-5.0 fashion */
 #define SHCMD(cmd) { .v = (const char*[]){ "/bin/sh", "-c", cmd, NULL } }
+#define STCMD(cmd) { .v = (const char*[]){ "/usr/local/bin/st", "-e", cmd, NULL } }
 
 /* commands */
 static char dmenumon[2] = "0"; /* component of dmenucmd, manipulated in spawn() */
@@ -89,8 +95,11 @@ static Key keys[] = {
 	{ MODKEY,             		XK_q,      killclient,     {0} },
 	{ MODKEY,             		XK_w,      spawn,     	   SHCMD("brave")},
 	{ MODKEY,                       XK_t,      setlayout,      {.v = &layouts[0]} },
+	{ MODKEY,                       XK_y,      setlayout,      {.v = &layouts[2]} },
 	{ MODKEY|ShiftMask,             XK_i,      incnmaster,     {.i = +1 } },
+	{ MODKEY,             		XK_p,      spawn,     	   SHCMD("maimed")},
 	/*Second Row*/
+	{ MODKEY,    			XK_s,      togglescratch,  {.ui = 0 } },
 	{ MODKEY,             		XK_d,      spawn,     	   {.v = dmenucmd } },
 	{ MODKEY|ShiftMask,             XK_d,      incnmaster,     {.i = -1 } },
 	{ MODKEY,                       XK_f,      setlayout,      {.v = &layouts[1]} },
@@ -99,8 +108,11 @@ static Key keys[] = {
 	{ MODKEY,                       XK_k,      focusstack,     {.i = -1 } },
 	{ MODKEY,                       XK_l,      setmfact,       {.f = +0.05} },
 	/*Third Row*/
+        { MODKEY,    			XK_c,      togglescratch,  {.ui = 1 } },
+	{ MODKEY,    			XK_v,      spawn,  	   SHCMD("ypd") },
 	{ MODKEY,                       XK_b,      togglebar,      {0} },
-	{ MODKEY,                       XK_m,      setlayout,      {.v = &layouts[2]} },
+	{ MODKEY,    			XK_m,      togglescratch,  {.ui = 2 } },
+	/*Special Keys*/
 	{ MODKEY|ShiftMask,             XK_Return, zoom,           {0} },
 	{ MODKEY,                       XK_Tab,    view,           {0} },
 	{ MODKEY,                       XK_space,  setlayout,      {0} },
@@ -122,8 +134,6 @@ static Key keys[] = {
 	{ MODKEY,                       XK_0,      view,           {.ui = ~0 } },
 	{ MODKEY|ShiftMask,             XK_0,      tag,            {.ui = ~0 } },
 	{ MODKEY,             XK_F12,      quit,           {0} },
-	{ MODKEY,    XK_y,      togglescratch,  {.ui = 0 } },
-        { MODKEY,    XK_u,      togglescratch,  {.ui = 1 } },
 
 };
 
@@ -136,8 +146,7 @@ static Button buttons[] = {
 	{ ClkWinTitle,          0,              Button2,        zoom,           {0} },
 	{ ClkStatusText,        0,              Button2,        spawn,          {.v = termcmd } },
 	{ ClkClientWin,         MODKEY,         Button1,        movemouse,      {0} },
-	{ ClkClientWin,         MODKEY,         Button2,        togglefloating, {0} },
-	{ ClkClientWin,         MODKEY,         Button1,        resizemouse,    {0} },
+	{ ClkClientWin,         MODKEY,         Button3,        resizemouse,    {0} },
 	{ ClkTagBar,            0,              Button1,        view,           {0} },
 	{ ClkTagBar,            0,              Button3,        toggleview,     {0} },
 	{ ClkTagBar,            MODKEY,         Button1,        tag,            {0} },
